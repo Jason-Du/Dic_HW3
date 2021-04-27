@@ -55,6 +55,7 @@ reg  signed [10:0] cross_y0;
 reg  signed [10:0] cross_x1;
 reg  signed [10:0] cross_y1;
 wire signed [22:0] cross_result1;
+
 always@(posedge clk or posedge reset)
 begin
 	if(reset)
@@ -121,13 +122,6 @@ reg  [9:0] ans_inx;
 reg  [9:0] ans_iny;
 wire [9:0] ans_outx;
 wire [9:0] ans_outy;
-
-reg        store_write;
-reg  [2:0] store_addr;
-reg  [9:0] store_inx;
-reg  [9:0] store_iny;
-wire [9:0] store_outx;
-wire [9:0] store_outy;
 store_reg ANS(
 		.clk(clk),
 		.rst(reset),
@@ -137,16 +131,6 @@ store_reg ANS(
 		.data_iny(ans_iny),
 		.data_outx(ans_outx),
 		.data_outy(ans_outy)
-);
-store_reg STORE(
-		.clk(clk),
-		.rst(reset),
-		.write_enable(store_write),
-		.address(store_addr),
-		.data_inx(store_inx),
-		.data_iny(store_iny),
-		.data_outx(store_outx),
-		.data_outy(store_outy)
 );
 counter point_in_counter(
 	.clk(clk),
@@ -203,7 +187,6 @@ begin
 			cross_y0=11'd0;
 			STORE_REG_IN[0][0]=Xin;
 			STORE_REG_IN[0][1]=Yin;
-			
 			for(i=1;i<6;i=i+1)
 			begin
 				for(j=0;j<2;j=j+1)
@@ -221,7 +204,7 @@ begin
 		end
 		STORE_P:
 		begin
-			if($unsigned(point_in_count[2:0])<($unsigned(point_num)))
+			if($unsigned(point_in_count)<($unsigned(point_num)))
 			begin
 				NS=STORE_P;
 				STORE_REG_IN[point_in_count[2:0]][0]=Xin;
