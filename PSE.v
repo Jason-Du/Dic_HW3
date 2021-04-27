@@ -1,6 +1,6 @@
-`include "counter.v"
-`include "cross_calculator.v"
-`include "store_reg.v"
+//`include "counter.v"
+//`include "cross_calculator.v"
+//`include "store_reg.v"
 module PSE ( clk,
 			reset,
 			Xin,
@@ -163,7 +163,70 @@ cross_calculator R0(
 
 always@(*)
 begin
-
+	case(cand_count)
+		3'b000:
+		begin
+			cross_x0=VECTOR_REG[0][0];
+			cross_y0=VECTOR_REG[0][1];
+		end
+		3'b001:
+		begin
+			cross_x0=VECTOR_REG[1][0];
+			cross_y0=VECTOR_REG[1][1];
+		end
+		3'b010:
+		begin
+			cross_x0=VECTOR_REG[2][0];
+			cross_y0=VECTOR_REG[2][1];
+		end
+		3'b011:
+		begin
+			cross_x0=VECTOR_REG[3][0];
+			cross_y0=VECTOR_REG[3][1];
+		end
+		3'b100:
+		begin
+			cross_x0=VECTOR_REG[4][0];
+			cross_y0=VECTOR_REG[4][1];
+		end
+		default:
+		begin
+			cross_x0=11'd0;
+			cross_y0=11'd0;
+		end
+	endcase
+	case(ier_count)
+		3'b000:
+		begin
+			cross_x1=VECTOR_REG[0][0];
+			cross_y1=VECTOR_REG[0][1];
+		end
+		3'b001:
+		begin
+			cross_x1=VECTOR_REG[1][0];
+			cross_y1=VECTOR_REG[1][1];
+		end
+		3'b010:
+		begin
+			cross_x1=VECTOR_REG[2][0];
+			cross_y1=VECTOR_REG[2][1];
+		end
+		3'b011:
+		begin
+			cross_x1=VECTOR_REG[3][0];
+			cross_y1=VECTOR_REG[3][1];
+		end
+		3'b100:
+		begin
+			cross_x1=VECTOR_REG[4][0];
+			cross_y1=VECTOR_REG[4][1];
+		end
+		default:
+		begin
+			cross_x1=11'd0;
+			cross_y1=11'd0;
+		end
+	endcase
 	case(CS)
 		IDLE:
 		begin
@@ -181,10 +244,6 @@ begin
 			valid=1'b0;
 			Xout=10'd0;
 			Yout=10'd0;
-			cross_x1=11'd0;
-			cross_y1=11'd0;
-			cross_x0=11'd0;
-			cross_y0=11'd0;
 			STORE_REG_IN[0][0]=Xin;
 			STORE_REG_IN[0][1]=Yin;
 			for(i=1;i<6;i=i+1)
@@ -198,7 +257,7 @@ begin
 			begin
 				for(j=0;j<2;j=j+1)
 				begin
-					VECTOR_REG[i][j]=VECTOR_REG_IN[i][j];
+					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
 				end
 			end
 		end
@@ -244,14 +303,14 @@ begin
 			begin
 				for(j=0;j<2;j=j+1)
 				begin
-					VECTOR_REG[i][j]=VECTOR_REG_IN[i][j];
+					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
 				end
 			end
 		end
 		
 		VECTOR_GEN:
 		begin
-			for(i=0;i<point_num-1;i=i+1)
+			for(i=0;i<5;i=i+1)
 			begin
 				VECTOR_REG_IN[i][0]=$signed({1'b0,STORE_REG[i+1][0]})-$signed({1'b0,STORE_REG[0][0]});
 				VECTOR_REG_IN[i][1]=$signed({1'b0,STORE_REG[i+1][1]})-$signed({1'b0,STORE_REG[0][1]});
@@ -266,10 +325,6 @@ begin
 			valid=1'b0;
 			Xout=10'd0;
 			Yout=10'd0;
-			cross_x1=11'd0;
-			cross_y1=11'd0;
-			cross_x0=11'd0;
-			cross_y0=11'd0;
 			ans_write=1'b0;
 			ans_addr    =3'd0;
 			ans_inx     =10'd0;
@@ -284,70 +339,6 @@ begin
 		end
 		CROSS_CAL:
 		begin
-			case(cand_count)
-				3'b000:
-				begin
-					cross_x0=VECTOR_REG[0][0];
-					cross_y0=VECTOR_REG[0][1];
-				end
-				3'b001:
-				begin
-					cross_x0=VECTOR_REG[1][0];
-					cross_y0=VECTOR_REG[1][1];
-				end
-				3'b010:
-				begin
-					cross_x0=VECTOR_REG[2][0];
-					cross_y0=VECTOR_REG[2][1];
-				end
-				3'b011:
-				begin
-					cross_x0=VECTOR_REG[3][0];
-					cross_y0=VECTOR_REG[3][1];
-				end
-				3'b100:
-				begin
-					cross_x0=VECTOR_REG[4][0];
-					cross_y0=VECTOR_REG[4][1];
-				end
-				default:
-				begin
-					cross_x0=11'd0;
-					cross_y0=11'd0;
-				end
-			endcase
-			case(ier_count)
-				3'b000:
-				begin
-					cross_x1=VECTOR_REG[0][0];
-					cross_y1=VECTOR_REG[0][1];
-				end
-				3'b001:
-				begin
-					cross_x1=VECTOR_REG[1][0];
-					cross_y1=VECTOR_REG[1][1];
-				end
-				3'b010:
-				begin
-					cross_x1=VECTOR_REG[2][0];
-					cross_y1=VECTOR_REG[2][1];
-				end
-				3'b011:
-				begin
-					cross_x1=VECTOR_REG[3][0];
-					cross_y1=VECTOR_REG[3][1];
-				end
-				3'b100:
-				begin
-					cross_x1=VECTOR_REG[4][0];
-					cross_y1=VECTOR_REG[4][1];
-				end
-				default:
-				begin
-					cross_x1=11'd0;
-					cross_y1=11'd0;
-				end
-			endcase
 			for(i=0;i<6;i=i+1)
 			begin
 				for(j=0;j<2;j=j+1)
@@ -355,23 +346,21 @@ begin
 					STORE_REG_IN[i][j]=STORE_REG[i][j];
 				end
 			end
+			
 			for(i=0;i<5;i=i+1)
 			begin
 				for(j=0;j<2;j=j+1)
 				begin
-					VECTOR_REG[i][j]=VECTOR_REG_IN[i][j];
+					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
 				end
 			end
-
 			valid=1'b0;
 			point_in_clear=1'b0;
 			point_in_keep=($signed(cross_result1)>$signed(23'd0))?1'b0:1'b1;
 			ier_keep=1'b0;
 			ier_clear=1'b0;
-			
 			cand_keep=1'b1;
 			cand_clear=1'b0;
-			
 			NS=($unsigned(ier_count[2:0])==($unsigned(point_num)-3'd2) )?STORE_ANS:CROSS_CAL;
 			Xout=10'd0;
 			Yout=10'd0;
@@ -392,10 +381,6 @@ begin
 			valid=1'b0;
 			Xout=10'd0;
 			Yout=10'd0;
-			cross_x1=11'd0;
-			cross_y1=11'd0;
-			cross_x0=11'd0;
-			cross_y0=11'd0;
 			for(i=0;i<6;i=i+1)
 			begin
 				for(j=0;j<2;j=j+1)
@@ -407,7 +392,7 @@ begin
 			begin
 				for(j=0;j<2;j=j+1)
 				begin
-					VECTOR_REG[i][j]=VECTOR_REG_IN[i][j];
+					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
 				end
 			end
 		end
@@ -427,10 +412,6 @@ begin
 			Xout=ans_outx;
 			Yout=ans_outy;
 			NS=($unsigned(point_in_count)==($unsigned(point_num)-3'd1))?IDLE:DONE;
-			cross_x1=11'd0;
-			cross_y1=11'd0;
-			cross_x0=11'd0;
-			cross_y0=11'd0;
 			for(i=0;i<6;i=i+1)
 			begin
 				for(j=0;j<2;j=j+1)
@@ -442,7 +423,7 @@ begin
 			begin
 				for(j=0;j<2;j=j+1)
 				begin
-					VECTOR_REG[i][j]=VECTOR_REG_IN[i][j];
+					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
 				end
 			end
 		end
@@ -458,10 +439,6 @@ begin
 			Xout=10'd0;
 			Yout=10'd0;
 			valid=1'b0;
-			cross_x1=11'd0;
-			cross_y1=11'd0;
-			cross_x0=11'd0;
-			cross_y0=11'd0;
 			ans_write=1'b0;
 			ans_addr    =3'd0;
 			ans_inx     =10'd0;
@@ -477,7 +454,7 @@ begin
 			begin
 				for(j=0;j<2;j=j+1)
 				begin
-					VECTOR_REG[i][j]=VECTOR_REG_IN[i][j];
+					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
 				end
 			end
 		end
