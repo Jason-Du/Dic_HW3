@@ -1,12 +1,9 @@
 `timescale 1ns/10ps
-`include "PSE.v"
-`include "counter.v"
-`include "cross_calculator.v"
 `define CYCLE      50.0  
 `define End_CYCLE  1000000
 `define PAT        "obj.data"
 `define GOLDEN     "golden.data"
-`define MAX 80000
+
 module testfixture();
 integer fd;
 integer fg;
@@ -36,15 +33,7 @@ PSE u_PSE(
         .Xout(Xout),
         .Yout(Yout)
         );
-initial
-begin
-	$fsdbDumpfile("top.fsdb");
-	$fsdbDumpvars("+struct", "+mda",u_PSE);
-	//$fsdbDumpvars(0,TOP);
-	//Simulation Limitation
-	#(`CYCLE*`MAX);
-	$finish;
-end
+
 always begin #(`CYCLE/2) clk = ~clk; end
 
 initial begin
