@@ -1,6 +1,7 @@
-//`include "counter.v"
-//`include "cross_calculator.v"
-//`include "store_reg.v"
+`include "counter.v"
+`include "cross_calculator.v"
+`include "store_reg.v"
+`include "store_reg2.v"
 module PSE ( clk,
 			reset,
 			Xin,
@@ -21,9 +22,6 @@ output reg [9:0] Xout;
 output reg [9:0] Yout;
 
 
-
-
-
 localparam   IDLE       = 3'b000;
 localparam   STORE_P    = 3'b001;
 localparam   VECTOR_GEN = 3'b010;
@@ -32,12 +30,6 @@ localparam   DONE       = 3'b100;
 localparam   STORE_ANS  = 3'b101;
 integer i;
 integer j;
-
-reg  signed [  9:0] STORE_REG     [5:0][1:0];
-reg  signed [  9:0] STORE_REG_IN  [5:0][1:0];
-reg  signed [ 10:0] VECTOR_REG    [4:0][1:0];
-reg  signed [ 10:0] VECTOR_REG_IN [4:0][1:0];
-
 
 reg         [ 2:0] CS;
 reg         [ 2:0] NS;
@@ -56,6 +48,28 @@ reg  signed [10:0] cross_x1;
 reg  signed [10:0] cross_y1;
 wire signed [22:0] cross_result1;
 
+reg        ans_write;
+reg  [2:0] ans_addr;
+reg  [9:0] ans_inx;
+reg  [9:0] ans_iny;
+wire [9:0] ans_outx;
+wire [9:0] ans_outy;
+reg        store_write;
+reg  [2:0] store_addr;
+reg  [9:0] store_inx;
+reg  [9:0] store_iny;
+wire [9:0] store_outx;
+wire [9:0] store_outy;
+reg         vector_write;
+reg  [ 2:0] vector_addr0;
+reg  [ 2:0] vector_addr1;
+reg  signed [10:0] vector_inx;
+reg  signed [10:0] vector_iny;
+wire signed [10:0] vector_outx0;
+wire signed [10:0] vector_outy0;
+wire signed [10:0] vector_outx1;
+wire signed [10:0] vector_outy1;
+
 always@(posedge clk or posedge reset)
 begin
 	if(reset)
@@ -68,60 +82,10 @@ begin
 	end
 end
 
-always@(posedge clk or posedge reset)
-begin
-	if(reset)
-	begin
-		for(i=0;i<6;i=i+1)
-		begin
-			for(j=0;j<2;j=j+1)
-			begin
-				STORE_REG[i][j]<=10'd0;
-			end
-		end
-	end
-	else
-	begin
-		for(i=0;i<6;i=i+1)
-		begin
-			for(j=0;j<2;j=j+1)
-			begin
-				STORE_REG[i][j]<=STORE_REG_IN[i][j];
-			end
-		end
-	end
-end
-
-always@(posedge clk or posedge reset)
-begin
-	if(reset)
-	begin
-		for(i=0;i<5;i=i+1)
-		begin
-			for(j=0;j<2;j=j+1)
-			begin
-				VECTOR_REG[i][j]<=10'd0;
-			end
-		end
-	end
-	else
-	begin
-		for(i=0;i<5;i=i+1)
-		begin
-			for(j=0;j<2;j=j+1)
-			begin
-				VECTOR_REG[i][j]<=VECTOR_REG_IN[i][j];
-			end
-		end
-	end
-end
 assign keep=1'b0;
-reg        ans_write;
-reg  [2:0] ans_addr;
-reg  [9:0] ans_inx;
-reg  [9:0] ans_iny;
-wire [9:0] ans_outx;
-wire [9:0] ans_outy;
+
+
+
 store_reg ANS(
 		.clk(clk),
 		.rst(reset),
@@ -131,6 +95,29 @@ store_reg ANS(
 		.data_iny(ans_iny),
 		.data_outx(ans_outx),
 		.data_outy(ans_outy)
+);
+store_reg STORE(
+		.clk(clk),
+		.rst(reset),
+		.write_enable(store_write),
+		.address(store_addr),
+		.data_inx(store_inx),
+		.data_iny(store_iny),
+		.data_outx(store_outx),
+		.data_outy(store_outy)
+);
+store_reg2 VECTOR(
+		.clk(clk),
+		.rst(reset),
+		.write_enable(vector_write),
+		.address0(vector_addr0),
+		.address1(vector_addr1),
+		.data_inx(vector_inx),
+		.data_iny(vector_iny),
+		.data_outx0(vector_outx0),
+		.data_outy0(vector_outy0),
+		.data_outx1(vector_outx1),
+		.data_outy1(vector_outy1)
 );
 counter point_in_counter(
 	.clk(clk),
@@ -163,111 +150,51 @@ cross_calculator R0(
 
 always@(*)
 begin
-	case(cand_count)
-		3'b000:
-		begin
-			cross_x0=VECTOR_REG[0][0];
-			cross_y0=VECTOR_REG[0][1];
-		end
-		3'b001:
-		begin
-			cross_x0=VECTOR_REG[1][0];
-			cross_y0=VECTOR_REG[1][1];
-		end
-		3'b010:
-		begin
-			cross_x0=VECTOR_REG[2][0];
-			cross_y0=VECTOR_REG[2][1];
-		end
-		3'b011:
-		begin
-			cross_x0=VECTOR_REG[3][0];
-			cross_y0=VECTOR_REG[3][1];
-		end
-		3'b100:
-		begin
-			cross_x0=VECTOR_REG[4][0];
-			cross_y0=VECTOR_REG[4][1];
-		end
-		default:
-		begin
-			cross_x0=11'd0;
-			cross_y0=11'd0;
-		end
-	endcase
-	case(ier_count)
-		3'b000:
-		begin
-			cross_x1=VECTOR_REG[0][0];
-			cross_y1=VECTOR_REG[0][1];
-		end
-		3'b001:
-		begin
-			cross_x1=VECTOR_REG[1][0];
-			cross_y1=VECTOR_REG[1][1];
-		end
-		3'b010:
-		begin
-			cross_x1=VECTOR_REG[2][0];
-			cross_y1=VECTOR_REG[2][1];
-		end
-		3'b011:
-		begin
-			cross_x1=VECTOR_REG[3][0];
-			cross_y1=VECTOR_REG[3][1];
-		end
-		3'b100:
-		begin
-			cross_x1=VECTOR_REG[4][0];
-			cross_y1=VECTOR_REG[4][1];
-		end
-		default:
-		begin
-			cross_x1=11'd0;
-			cross_y1=11'd0;
-		end
-	endcase
+	cross_x0=vector_outx0;
+	cross_y0=vector_outy0;
+	cross_x1=vector_outx1;
+	cross_y1=vector_outy1;
 	case(CS)
 		IDLE:
 		begin
 			NS=reset?IDLE:STORE_P;
 			point_in_clear=reset?1'b1:1'b0;
-			ans_write=reset?1'b0:1'b1;
-			ans_addr    =3'd0;
-			ans_inx     =Xin;
-			ans_iny     =Yin;
+			ans_write     =reset?1'b0:1'b1;
+			ans_addr      =3'd0;
+			ans_inx       =Xin;
+			ans_iny       =Yin;
 			point_in_keep =1'b0;
-			cand_keep =1'b0;
-			cand_clear=1'b1;
-			ier_keep  =1'b0;
-			ier_clear =1'b1;
-			valid=1'b0;
-			Xout=10'd0;
-			Yout=10'd0;
-			STORE_REG_IN[0][0]=Xin;
-			STORE_REG_IN[0][1]=Yin;
-			for(i=1;i<6;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					STORE_REG_IN[i][j]=STORE_REG[i][j];
-				end
-			end
-			for(i=0;i<5;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
-				end
-			end
+			cand_keep     =1'b0;
+			cand_clear    =1'b1;
+			ier_keep      =1'b0;
+			ier_clear     =1'b1;
+			valid         =1'b0;
+			Xout          =10'd0;
+			Yout          =10'd0;
+			store_write   =1'b1;
+			store_addr    =3'd0;
+			store_inx     =Xin;
+			store_iny     =Yin;
+			vector_write  =1'b0;
+			vector_addr0  =3'd0;
+			vector_addr1  =3'd0;
+			vector_inx    =11'd0;
+			vector_iny    =11'd0;
 		end
 		STORE_P:
 		begin
 			if($unsigned(point_in_count)<($unsigned(point_num)))
 			begin
 				NS=STORE_P;
-				STORE_REG_IN[point_in_count[2:0]][0]=Xin;
-				STORE_REG_IN[point_in_count[2:0]][1]=Yin;
+				store_write=1'b1;
+				store_addr=point_in_count;
+				store_inx  =Xin;
+				store_iny  =Yin;
+				vector_write=1'b0;
+				vector_addr0=3'd0;
+				vector_addr1=3'd0;
+				vector_inx  =11'd0;
+				vector_iny  =11'd0;
 				point_in_clear=1'b0;
 				point_in_keep =1'b0;
 			end
@@ -276,13 +203,15 @@ begin
 				NS=VECTOR_GEN;
 				point_in_clear=1'b1;
 				point_in_keep =1'b0;
-				for(i=0;i<4;i=i+1)
-				begin
-					for(j=0;j<2;j=j+1)
-					begin
-						STORE_REG_IN[i][j]<=STORE_REG[i][j];
-					end
-				end
+				store_write=1'b0;
+				store_addr =3'd0;
+				store_inx  =10'd0;
+				store_iny  =10'd0;
+				vector_write=1'b0;
+				vector_addr0=3'd0;
+				vector_addr1=3'd0;
+				vector_inx  =11'd0;
+				vector_iny  =11'd0;
 			end
 			cand_keep =1'b0;
 			cand_clear=1'b1;
@@ -291,32 +220,27 @@ begin
 			valid=1'b0;
 			Xout=10'd0;
 			Yout=10'd0;
-			cross_x1=11'd0;
-			cross_y1=11'd0;
-			cross_x0=11'd0;
-			cross_y0=11'd0;
 			ans_write=1'b0;
 			ans_addr    =3'd0;
 			ans_inx     =10'd0;
 			ans_iny     =10'd0;
-			for(i=0;i<5;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
-				end
-			end
 		end
 		
 		VECTOR_GEN:
 		begin
-			for(i=0;i<5;i=i+1)
-			begin
-				VECTOR_REG_IN[i][0]=$signed({1'b0,STORE_REG[i+1][0]})-$signed({1'b0,STORE_REG[0][0]});
-				VECTOR_REG_IN[i][1]=$signed({1'b0,STORE_REG[i+1][1]})-$signed({1'b0,STORE_REG[0][1]});
-			end
-			NS=CROSS_CAL;
-			point_in_clear=1'b1;
+			store_write=1'b0;
+			store_addr =point_in_count+3'd1;
+			store_inx  =10'd0;
+			store_iny  =10'd0;
+			
+			vector_write=1'b1;
+			vector_addr0 =point_in_count;
+			vector_addr1 =3'd0;
+			vector_inx  =$signed({1'b0,store_outx})-$signed({1'b0,ans_outx});
+			vector_iny  =$signed({1'b0,store_outy})-$signed({1'b0,ans_outy});
+			
+			NS=(point_in_count==(point_num-3'd2))?CROSS_CAL:VECTOR_GEN;
+			point_in_clear=(point_in_count==(point_num-3'd2))?1'b1:1'b0;
 			point_in_keep =1'b0;
 			cand_keep =1'b0;
 			cand_clear=1'b1;
@@ -329,31 +253,9 @@ begin
 			ans_addr    =3'd0;
 			ans_inx     =10'd0;
 			ans_iny     =10'd0;
-			for(i=0;i<6;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					STORE_REG_IN[i][j]=STORE_REG[i][j];
-				end
-			end
 		end
 		CROSS_CAL:
 		begin
-			for(i=0;i<6;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					STORE_REG_IN[i][j]=STORE_REG[i][j];
-				end
-			end
-			
-			for(i=0;i<5;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
-				end
-			end
 			valid=1'b0;
 			point_in_clear=1'b0;
 			point_in_keep=($signed(cross_result1)>$signed(23'd0))?1'b0:1'b1;
@@ -364,13 +266,31 @@ begin
 			NS=($unsigned(ier_count[2:0])==($unsigned(point_num)-3'd2) )?STORE_ANS:CROSS_CAL;
 			Xout=10'd0;
 			Yout=10'd0;
+			store_write=1'b0;
+			store_addr =3'd0;
+			store_inx  =10'd0;
+			store_iny  =10'd0;
+			vector_write=1'b0;
+			vector_addr0=cand_count;
+			vector_addr1=ier_count;
+			vector_inx  =11'd0;
+			vector_iny  =11'd0;
 		end
 		STORE_ANS:
 		begin
 			ans_write=1'b1;
 			ans_addr    =point_in_count[2:0]+3'd1;
-			ans_inx     =STORE_REG[cand_count+16'd1][0];
-			ans_iny     =STORE_REG[cand_count+16'd1][1];
+			ans_inx     =store_outx;
+			ans_iny     =store_outy;
+			store_write=1'b0;
+			store_addr =cand_count+16'd1;
+			store_inx  =10'd0;
+			store_iny  =10'd0;
+			vector_write=1'b0;
+			vector_addr0=3'd0;
+			vector_addr1=3'd0;
+			vector_inx  =11'd0;
+			vector_iny  =11'd0;
 			NS=($unsigned(cand_count[2:0])==($unsigned(point_num)-3'd2) )?DONE:CROSS_CAL;
 			point_in_clear=1'b1;
 			point_in_keep=1'b0;
@@ -381,20 +301,6 @@ begin
 			valid=1'b0;
 			Xout=10'd0;
 			Yout=10'd0;
-			for(i=0;i<6;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					STORE_REG_IN[i][j]=STORE_REG[i][j];
-				end
-			end
-			for(i=0;i<5;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
-				end
-			end
 		end
 		DONE:
 		begin
@@ -404,6 +310,15 @@ begin
 			ans_addr    =point_in_count;
 			ans_inx     =10'd0;
 			ans_iny     =10'd0;
+			store_write=1'b0;
+			store_addr =3'd0;
+			store_inx  =10'd0;
+			store_iny  =10'd0;
+			vector_write=1'b0;
+			vector_addr0=3'd0;
+			vector_addr1=3'd0;
+			vector_inx  =11'd0;
+			vector_iny  =11'd0;
 			point_in_keep=1'b0;
 			cand_keep =1'b0;
 			cand_clear=1'b1;
@@ -412,20 +327,6 @@ begin
 			Xout=ans_outx;
 			Yout=ans_outy;
 			NS=($unsigned(point_in_count)==($unsigned(point_num)-3'd1))?IDLE:DONE;
-			for(i=0;i<6;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					STORE_REG_IN[i][j]=STORE_REG[i][j];
-				end
-			end
-			for(i=0;i<5;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
-				end
-			end
 		end
 		default:
 		begin
@@ -443,23 +344,17 @@ begin
 			ans_addr    =3'd0;
 			ans_inx     =10'd0;
 			ans_iny     =10'd0;
-			for(i=0;i<6;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					STORE_REG_IN[i][j]=STORE_REG[i][j];
-				end
-			end
-			for(i=0;i<5;i=i+1)
-			begin
-				for(j=0;j<2;j=j+1)
-				begin
-					VECTOR_REG_IN[i][j]=VECTOR_REG[i][j];
-				end
-			end
+			store_write=1'b0;
+			store_addr =3'd0;
+			store_inx  =10'd0;
+			store_iny  =10'd0;
+			vector_write=1'b0;
+			vector_addr0=3'd0;
+			vector_addr1=3'd0;
+			vector_inx  =11'd0;
+			vector_iny  =11'd0;
 		end
 	endcase
 end
-
 endmodule
 
