@@ -15,7 +15,7 @@ module counter(
 	begin
 		if(rst)
 		begin
-			count<=16'd0;
+			count<=3'd0;
 		end
 		else
 		begin
@@ -27,7 +27,7 @@ module counter(
 	begin
 		if(clear)
 		begin
-			count_in=16'd0;
+			count_in=3'd0;
 		end
 		else if(keep)
 		begin
@@ -35,7 +35,7 @@ module counter(
 		end
 		else
 		begin
-			count_in=count+16'd1;
+			count_in=count+3'd1;
 		end
 	end
 endmodule
