@@ -6,13 +6,17 @@ module cross_calculator(
 						result
 );
 
-input [9:0] x0;
-input [9:0] y0;
-input [9:0] x1;
-input [9:0] y1;
+input signed  [10:0] x0;
+input signed  [10:0] y0;
+input signed  [10:0] x1;
+input signed  [10:0] y1;
 
-output[9:0] result;
+output signed [22:0] result;
+wire   signed [21:0] Minute; 
+wire   signed [21:0] Minus;
 
-
-assign result=x0*y1+y0*x1;
+assign Minute=$signed(x0)*$signed(y1);
+assign Minus =$signed(y0)*$signed(x1);
+assign result=$signed(Minute)-$signed(Minus);
+endmodule
 

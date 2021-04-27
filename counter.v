@@ -9,8 +9,8 @@ module counter(
 	input               rst;
 	input               keep;
 	input               clear;
-	reg        [15:0]   count;
-	reg        [15:0]   count_in;
+	output reg        [2:0]   count;
+	reg        [2:0]   count_in;
 	always@(posedge clk or posedge rst)
 	begin
 		if(rst)
